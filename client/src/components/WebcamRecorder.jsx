@@ -6,6 +6,8 @@ const WebcamRecorder = () => {
   const [recording, setRecording] = useState(false);
   const [videoBlob, setVideoBlob] = useState(null);
   const [stream, setStream] = useState(null);
+  const [transcript, setTranscript] = useState("");
+
   const chunksRef = useRef([]);
 
   useEffect(() => {
@@ -51,7 +53,9 @@ const WebcamRecorder = () => {
         const blob = new Blob(chunksRef.current, { type: "video/webm" });
         setVideoBlob(blob);
         chunksRef.current = [];
+        uploadVideoForTranscription(blob); // 👈 Upload right after stopping
       };
+      
 
       mediaRecorder.start();
       setRecording(true);
@@ -67,6 +71,26 @@ const WebcamRecorder = () => {
       setRecording(false);
     }
   };
+
+  const uploadVideoForTranscription = async (blob) => {
+    const formData = new FormData();
+    const file = new File([blob], "interview.webm", { type: "video/webm" });
+    formData.append("file", file);
+  
+    try {
+      const res = await fetch("http://localhost:8000/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await res.json();
+      setTranscript(data.transcript);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setTranscript("Failed to transcribe.");
+    }
+  };
+  
 
   return (
     <div
@@ -168,9 +192,14 @@ const WebcamRecorder = () => {
             />
           </div>
         )}
+  
+        
+
+        
       </div>
     </div>
   );
+  
 
 };
 
