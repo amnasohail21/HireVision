@@ -69,44 +69,100 @@ const WebcamRecorder = () => {
   };
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <h2>HireVision Interview Recorder</h2>
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        playsInline
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        background: "#f8f9fa",
+        padding: "2rem",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div
         style={{
-          width: 400,
-          height: 300,
-          borderRadius: 8,
-          backgroundColor: "#000",
-          transform: "scaleX(-1)",   // mirror live webcam
+          width: "100%",
+          maxWidth: 600,
+          background: "#ffffff",
+          borderRadius: "12px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          padding: "2rem",
+          textAlign: "center",
         }}
-      /> 
+      >
+        <h2 style={{ marginBottom: "1rem", color: "#333" }}>
+          🎥 HireVision Interview Recorder
+        </h2>
   
-      <div style={{ marginTop: 20 }}>
-        {!recording ? (
-          <button onClick={handleStartRecording}>Start Recording</button>
-        ) : (
-          <button onClick={handleStopRecording}>Stop Recording</button>
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          style={{
+            width: "100%",
+            height: "auto",
+            borderRadius: "10px",
+            backgroundColor: "#000",
+            transform: "scaleX(-1)",
+          }}
+        />
+  
+        <div style={{ marginTop: "1.5rem" }}>
+          {!recording ? (
+            <button
+              onClick={handleStartRecording}
+              style={{
+                padding: "0.7rem 1.5rem",
+                backgroundColor: "#0d6efd",
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "1rem",
+                cursor: "pointer",
+                transition: "0.2s",
+              }}
+            >
+              Start Recording
+            </button>
+          ) : (
+            <button
+              onClick={handleStopRecording}
+              style={{
+                padding: "0.7rem 1.5rem",
+                backgroundColor: "#dc3545",
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "1rem",
+                cursor: "pointer",
+                transition: "0.2s",
+              }}
+            >
+              Stop Recording
+            </button>
+          )}
+        </div>
+  
+        {videoBlob && (
+          <div style={{ marginTop: "2rem" }}>
+            <h4 style={{ marginBottom: "0.5rem", color: "#555" }}>
+              📼 Recording Preview
+            </h4>
+            <video
+              src={URL.createObjectURL(videoBlob)}
+              controls
+              style={{
+                width: "100%",
+                borderRadius: "10px",
+                transform: "scaleX(-1)",
+              }}
+            />
+          </div>
         )}
       </div>
-  
-      {videoBlob && (
-        <div style={{ marginTop: 20 }}>
-          <h4>Recording Preview:</h4>
-          <video
-            src={URL.createObjectURL(videoBlob)}
-            controls
-            style={{ 
-              width: 400, 
-              borderRadius: 8, 
-              transform: "scaleX(-1)"  // mirror recorded playback
-            }}
-          />
-        </div>
-      )}
     </div>
   );
   
