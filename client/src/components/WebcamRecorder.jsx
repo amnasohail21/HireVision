@@ -72,28 +72,30 @@ const WebcamRecorder = () => {
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
-        background: "#f8f9fa",
+        background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
         padding: "2rem",
-        fontFamily: "sans-serif",
+        fontFamily: "'Inter', sans-serif",
+        color: "#f4f4f4",
       }}
     >
       <div
         style={{
           width: "100%",
-          maxWidth: 600,
-          background: "#ffffff",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          maxWidth: "620px",
+          background: "rgba(30, 30, 30, 0.85)",
+          backdropFilter: "blur(12px)",
+          borderRadius: "16px",
           padding: "2rem",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
           textAlign: "center",
         }}
       >
-        <h2 style={{ marginBottom: "1rem", color: "#333" }}>
-          🎥 HireVision Interview Recorder
+        <h2 style={{ fontSize: "1.8rem", marginBottom: "1rem", fontWeight: 600 }}>
+          🎥 HireVision Interview Analysis
         </h2>
   
         <video
@@ -103,52 +105,54 @@ const WebcamRecorder = () => {
           playsInline
           style={{
             width: "100%",
-            height: "auto",
-            borderRadius: "10px",
+            borderRadius: "12px",
             backgroundColor: "#000",
             transform: "scaleX(-1)",
+            border: "1px solid rgba(255,255,255,0.1)",
           }}
         />
   
-        <div style={{ marginTop: "1.5rem" }}>
+        <div style={{ marginTop: "1.8rem" }}>
           {!recording ? (
             <button
               onClick={handleStartRecording}
               style={{
-                padding: "0.7rem 1.5rem",
-                backgroundColor: "#0d6efd",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
+                padding: "0.75rem 1.5rem",
+                background: "#4ade80",
+                color: "#111",
+                fontWeight: 600,
                 fontSize: "1rem",
+                border: "none",
+                borderRadius: "10px",
                 cursor: "pointer",
-                transition: "0.2s",
+                transition: "background 0.2s ease-in-out",
               }}
             >
-              Start Recording
+              ▶️ Start Recording
             </button>
           ) : (
             <button
               onClick={handleStopRecording}
               style={{
-                padding: "0.7rem 1.5rem",
-                backgroundColor: "#dc3545",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
+                padding: "0.75rem 1.5rem",
+                background: "#f87171",
+                color: "#111",
+                fontWeight: 600,
                 fontSize: "1rem",
+                border: "none",
+                borderRadius: "10px",
                 cursor: "pointer",
-                transition: "0.2s",
+                transition: "background 0.2s ease-in-out",
               }}
             >
-              Stop Recording
+              ⏹ Stop Recording
             </button>
           )}
         </div>
   
         {videoBlob && (
           <div style={{ marginTop: "2rem" }}>
-            <h4 style={{ marginBottom: "0.5rem", color: "#555" }}>
+            <h4 style={{ fontSize: "1.1rem", marginBottom: "0.5rem", color: "#e0e0e0" }}>
               📼 Recording Preview
             </h4>
             <video
@@ -156,8 +160,10 @@ const WebcamRecorder = () => {
               controls
               style={{
                 width: "100%",
-                borderRadius: "10px",
+                borderRadius: "12px",
                 transform: "scaleX(-1)",
+                backgroundColor: "#000",
+                border: "1px solid rgba(255,255,255,0.08)",
               }}
             />
           </div>
@@ -165,7 +171,7 @@ const WebcamRecorder = () => {
       </div>
     </div>
   );
-  
+
 };
 
 export default WebcamRecorder;
