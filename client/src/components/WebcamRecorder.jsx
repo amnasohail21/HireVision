@@ -72,6 +72,9 @@ const WebcamRecorder = () => {
     }
   };
 
+  uploadVideoForTranscription(blob);
+
+
   const uploadVideoForTranscription = async (blob) => {
     const file = new File([blob], "interview.webm", { type: "video/webm" });
     const formData = new FormData();
@@ -193,27 +196,26 @@ const WebcamRecorder = () => {
           </div>
         )}
   
-        {transcript && (
-          <div style={{ marginTop: "2rem", textAlign: "left" }}>
-            <h4 style={{ fontSize: "1.1rem", marginBottom: "0.5rem", color: "#90ee90" }}>
-              📝 Transcription Result
-            </h4>
-            <div
-              style={{
-                background: "#1c1c1c",
-                padding: "1rem",
-                borderRadius: "10px",
-                color: "#ccc",
-                fontSize: "0.95rem",
-                lineHeight: "1.6",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {transcript}
-            </div>
-          </div>
-        )}
+  {transcript && (
+  <div style={{ marginTop: "2rem", textAlign: "left" }}>
+    <h4 style={{ color: "#90ee90" }}>📝 Transcription Result:</h4>
+    <div
+      style={{
+        background: "#1c1c1c",
+        padding: "1rem",
+        borderRadius: "10px",
+        color: "#ccc",
+        fontSize: "0.95rem",
+        lineHeight: "1.6",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        whiteSpace: "pre-wrap",
+      }}
+    >
+      {transcript}
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );
