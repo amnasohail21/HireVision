@@ -73,21 +73,21 @@ const WebcamRecorder = () => {
   };
 
   const uploadVideoForTranscription = async (blob) => {
-    const formData = new FormData();
     const file = new File([blob], "interview.webm", { type: "video/webm" });
+    const formData = new FormData();
     formData.append("file", file);
   
     try {
-      const res = await fetch("http://localhost:8000/transcribe", {
+      const response = await fetch("http://localhost:8000/transcribe", {
         method: "POST",
         body: formData,
       });
   
-      const data = await res.json();
+      const data = await response.json();
       setTranscript(data.transcript);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setTranscript("Failed to transcribe.");
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setTranscript("❌ Failed to get transcription.");
     }
   };
   
