@@ -16,4 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.post("/transcribe")
+async def transcribe_video(file: UploadFile = File(...)):
+    video_path = f"temp/{file.filename}"
+    audio_path = video_path.replace(".webm", ".mp3") 
 
