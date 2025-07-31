@@ -28,5 +28,21 @@ async def transcribe_video(file: UploadFile = File(...)):
 
     # Transcribe with Whisper locally
     result = model.transcribe(audio_path)
+    transcript = result["text"]
 
-    return {"transcript": result["text"]}
+    # Estimate duration and speed
+    duration_sec = result.get("duration", 0)
+    word_count = len(transcript.split())
+    wpm = round(word_count / (duration_sec / 60)) if duration_sec > 0 else 0
+
+    clarity = "Clear"
+    if wpm < 90:
+        clarity = "Too Slow"
+    elif wpm > 160:
+        clarity = "Too Fast"
+
+    return {
+        "transcript": transcript,
+        "wpm": wpm,
+        "clarity": clarity,
+    }
