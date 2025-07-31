@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import * as faceapi from "face-api.js";
 
 const WebcamRecorder = () => {
   const videoRef = useRef(null);
@@ -7,10 +8,18 @@ const WebcamRecorder = () => {
   const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [fillerWords, setFillerWords] = useState({});
-  const [wpm, setWpm] = useState(null);
-  const [clarity, setClarity] = useState("");
+  const [fillerWords, setFillerWords] = useState([]);
+  const [analysis, setAnalysis] = useState(null);
 
+  useEffect(() => {
+    // Load face-api models once
+    const loadModels = async () => {
+      const MODEL_URL = '/models'; // Place models in /public/models
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+    };
+    loadModels();
+  }, []);
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -25,6 +34,7 @@ const WebcamRecorder = () => {
       const url = URL.createObjectURL(blob);
       setMediaBlobUrl(url);
       uploadRecording(blob);
+      analyzePostureAndEyeContact(url);
     };
 
     mediaRecorder.start();
@@ -40,7 +50,7 @@ const WebcamRecorder = () => {
   const uploadRecording = async (blob) => {
     setLoading(true);
     setTranscript("");
-    setFillerWords({});
+    setFillerWords([]);
 
     const formData = new FormData();
     formData.append("file", blob, "interview.webm");
@@ -50,23 +60,12 @@ const WebcamRecorder = () => {
         method: "POST",
         body: formData,
       });
-
       const data = await response.json();
       const text = data.transcript || "No transcript found";
       setTranscript(text);
-      setWpm(data.wpm || null);
-      setClarity(data.clarity || "");
 
-      // Filler word analysis
-      const lower = text.toLowerCase();
-      const fillers = ["um", "uh", "like", "you know", "so"];
-      const counts = {};
-      fillers.forEach((word) => {
-        const regex = new RegExp(`\\b${word}\\b`, "g");
-        const match = lower.match(regex);
-        counts[word] = match ? match.length : 0;
-      });
-      setFillerWords(counts);
+      const fillerMatches = text.match(/\b(um|uh|like|you know|so)\b/gi) || [];
+      setFillerWords(fillerMatches);
     } catch (err) {
       console.error("Upload failed:", err);
       setTranscript("Failed to transcribe.");
@@ -75,10 +74,66 @@ const WebcamRecorder = () => {
     }
   };
 
+  const analyzePostureAndEyeContact = async (videoUrl) => {
+    const tempVideo = document.createElement("video");
+    tempVideo.src = videoUrl;
+    tempVideo.crossOrigin = "anonymous";
+    tempVideo.muted = true;
+    await tempVideo.play();
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    let faceCount = 0;
+    let lookingAtCamera = 0;
+
+    const analyzeFrame = async () => {
+      canvas.width = tempVideo.videoWidth;
+      canvas.height = tempVideo.videoHeight;
+      context.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+
+      const detections = await faceapi
+        .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks();
+
+      if (detections) {
+        faceCount++;
+        const landmarks = detections.landmarks;
+        const nose = landmarks.getNose();
+        const leftEye = landmarks.getLeftEye();
+        const rightEye = landmarks.getRightEye();
+
+        const noseX = nose[3].x;
+        const leftX = leftEye[0].x;
+        const rightX = rightEye[3].x;
+
+        const centerFace = (leftX + rightX) / 2;
+        const eyeDiff = Math.abs(noseX - centerFace);
+
+        if (eyeDiff < 15) {
+          lookingAtCamera++;
+        }
+      }
+    };
+
+    return new Promise((resolve) => {
+      const interval = setInterval(async () => {
+        if (tempVideo.ended || tempVideo.currentTime >= tempVideo.duration) {
+          clearInterval(interval);
+          const posture = faceCount > 0 ? "Visible" : "No face detected";
+          const eyeContact = lookingAtCamera / faceCount > 0.6 ? "Good" : "Poor";
+          setAnalysis({ posture, eyeContact });
+          resolve();
+        } else {
+          await analyzeFrame();
+        }
+      }, 500);
+    });
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <video ref={videoRef} autoPlay playsInline muted style={{ width: 480, borderRadius: 12 }} />
-      
       <div style={{ marginTop: 12 }}>
         {recording ? (
           <button onClick={stopRecording}>Stop Recording</button>
@@ -103,24 +158,22 @@ const WebcamRecorder = () => {
         </div>
       )}
 
-      {wpm !== null && (
-        <div style={{ marginTop: 16 }}>
-          <h3>Speech Metrics:</h3>
-          <p><strong>Speed:</strong> {wpm} words per minute</p>
-          <p><strong>Clarity:</strong> {clarity}</p>
+      {fillerWords.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <h4>Filler Words Detected:</h4>
+          <ul>
+            {fillerWords.map((word, i) => (
+              <li key={i}>{word}</li>
+            ))}
+          </ul>
         </div>
       )}
 
-      {Object.keys(fillerWords).length > 0 && (
-        <div style={{ marginTop: 16 }}>
-          <h3>Filler Word Analysis:</h3>
-          <ul>
-            {Object.entries(fillerWords).map(([word, count]) => (
-              <li key={word}>
-                {word}: {count}
-              </li>
-            ))}
-          </ul>
+      {analysis && (
+        <div style={{ marginTop: 12 }}>
+          <h4>Posture & Eye Contact:</h4>
+          <p>Posture: {analysis.posture}</p>
+          <p>Eye Contact: {analysis.eyeContact}</p>
         </div>
       )}
     </div>
