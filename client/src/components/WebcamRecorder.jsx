@@ -8,6 +8,9 @@ const WebcamRecorder = () => {
   const [loading, setLoading] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [fillerWords, setFillerWords] = useState({});
+  const [wpm, setWpm] = useState(null);
+  const [clarity, setClarity] = useState("");
+
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -51,6 +54,8 @@ const WebcamRecorder = () => {
       const data = await response.json();
       const text = data.transcript || "No transcript found";
       setTranscript(text);
+      setWpm(data.wpm || null);
+      setClarity(data.clarity || "");
 
       // Filler word analysis
       const lower = text.toLowerCase();
@@ -95,6 +100,14 @@ const WebcamRecorder = () => {
         <div style={{ marginTop: 16 }}>
           <h3>Transcript:</h3>
           <p>{transcript}</p>
+        </div>
+      )}
+
+      {wpm !== null && (
+        <div style={{ marginTop: 16 }}>
+          <h3>Speech Metrics:</h3>
+          <p><strong>Speed:</strong> {wpm} words per minute</p>
+          <p><strong>Clarity:</strong> {clarity}</p>
         </div>
       )}
 
