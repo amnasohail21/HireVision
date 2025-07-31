@@ -7,6 +7,7 @@ const WebcamRecorder = () => {
   const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [fillerWords, setFillerWords] = useState({});
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -35,7 +36,9 @@ const WebcamRecorder = () => {
 
   const uploadRecording = async (blob) => {
     setLoading(true);
-    setTranscript(""); // Reset previous transcript
+    setTranscript("");
+    setFillerWords({});
+
     const formData = new FormData();
     formData.append("file", blob, "interview.webm");
 
@@ -46,8 +49,19 @@ const WebcamRecorder = () => {
       });
 
       const data = await response.json();
-      setTranscript(data.transcript || "No transcript found");
-      console.log("Transcript:", data.transcript);
+      const text = data.transcript || "No transcript found";
+      setTranscript(text);
+
+      // Filler word analysis
+      const lower = text.toLowerCase();
+      const fillers = ["um", "uh", "like", "you know", "so"];
+      const counts = {};
+      fillers.forEach((word) => {
+        const regex = new RegExp(`\\b${word}\\b`, "g");
+        const match = lower.match(regex);
+        counts[word] = match ? match.length : 0;
+      });
+      setFillerWords(counts);
     } catch (err) {
       console.error("Upload failed:", err);
       setTranscript("Failed to transcribe.");
@@ -59,6 +73,7 @@ const WebcamRecorder = () => {
   return (
     <div style={{ padding: 20 }}>
       <video ref={videoRef} autoPlay playsInline muted style={{ width: 480, borderRadius: 12 }} />
+      
       <div style={{ marginTop: 12 }}>
         {recording ? (
           <button onClick={stopRecording}>Stop Recording</button>
@@ -80,6 +95,19 @@ const WebcamRecorder = () => {
         <div style={{ marginTop: 16 }}>
           <h3>Transcript:</h3>
           <p>{transcript}</p>
+        </div>
+      )}
+
+      {Object.keys(fillerWords).length > 0 && (
+        <div style={{ marginTop: 16 }}>
+          <h3>Filler Word Analysis:</h3>
+          <ul>
+            {Object.entries(fillerWords).map(([word, count]) => (
+              <li key={word}>
+                {word}: {count}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
